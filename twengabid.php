@@ -24,62 +24,60 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
-if (!defined('_PS_VERSION_'))
-	exit;
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 class twengabid extends Module
 {
+    public function __construct()
+    {
+        $this->name = 'twengabid';
+        $this->tab = 'advertising_marketing';
+        $this->version = '1.0.0';
+        $this->author = 'PrestaShop';
 
-	public function __construct()
-	{
-		$this->name = 'twengabid';
-		$this->tab = 'advertising_marketing';
-		$this->version = '1.0.0';
-		$this->author = 'PrestaShop';
+        $this->bootstrap = true;
 
-		$this->bootstrap = true;
+        parent::__construct();
 
-		parent::__construct();
+        $this->displayName = $this->l('Intelligent automation of AdWords campaigns');
+        $this->description = $this->l('With Smart BID, concentrate on your strategy by using an automated bid management system, which is easily integrated into your exisitng AdWords campaigns to immediately boost ROI.');
 
-		$this->displayName = $this->l('Intelligent automation of AdWords campaigns');
-		$this->description = $this->l('With Smart BID, concentrate on your strategy by using an automated bid management system, which is easily integrated into your exisitng AdWords campaigns to immediately boost ROI.');
+        if (version_compare(_PS_VERSION_, '1.5', '<') == true) {
+            require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');
+        }
+    }
 
-		if (version_compare(_PS_VERSION_, '1.5', '<') == true)
-			require(_PS_MODULE_DIR_.$this->name.'/backward_compatibility/backward.php');
-	}
+    public function install()
+    {
+        return parent::install() && $this->registerHook('backOfficeHeader');
+    }
 
-	public function install()
-	{
-		return parent::install() && $this->registerHook('backOfficeHeader');
-	}
+    public function hookBackOfficeHeader()
+    {
+        if (strcmp(Tools::getValue('configure'), $this->name) === 0) {
+            if (version_compare(_PS_VERSION_, '1.5', '>') == true) {
+                $this->context->controller->addCSS($this->_path.'views/css/configure.css');
 
-	public function hookBackOfficeHeader()
-	{
-		if (strcmp(Tools::getValue('configure'), $this->name) === 0)
-		{
-			if (version_compare(_PS_VERSION_, '1.5', '>') == true)
-			{
-				$this->context->controller->addCSS($this->_path.'views/css/configure.css');
+                if (version_compare(_PS_VERSION_, '1.6', '<') == true) {
+                    $this->context->controller->addCSS($this->_path.'views/css/configure-nobootstrap.css');
+                }
+            } else {
+                $html = '<link rel="stylesheet" href="'.$this->_path.'views/css/configure.css" type="text/css" />';
+                $html .= '<link rel="stylesheet" href="'.$this->_path.'views/css/configure-nobootstrap.css" type="text/css" />';
 
-				if (version_compare(_PS_VERSION_, '1.6', '<') == true)
-					$this->context->controller->addCSS($this->_path.'views/css/configure-nobootstrap.css');
-			}
-			else
-			{
-				$html = '<link rel="stylesheet" href="'.$this->_path.'views/css/configure.css" type="text/css" />';
-				$html .= '<link rel="stylesheet" href="'.$this->_path.'views/css/configure-nobootstrap.css" type="text/css" />';
+                return $html;
+            }
+        }
+    }
 
-				return $html;
-			}
-		}
-	}
+    public function getContent()
+    {
+        $this->context->smarty->assign(array(
+            'module_dir' => $this->_path,
+        ));
 
-	public function getContent()
-	{
-		$this->context->smarty->assign(array(
-			'module_dir' => $this->_path,
-		));
-
-		return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
-	}
+        return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
+    }
 }
